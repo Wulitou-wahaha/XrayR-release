@@ -392,7 +392,7 @@ cron_jobs() {
         disable_auto_update_geo
         ;;
     *)
-        LOGE "请输入正确的数字 [0-4]"
+        echo -e "请输入正确的数字 [0-4]"
         ;;
     esac
 }
@@ -424,20 +424,20 @@ update_geo() {
 }
 
 enable_auto_update_geo() {
-    LOGI "正在开启自动更新geo数据..."
+    echo -e "正在开启自动更新geo数据..."
     crontab -l >/tmp/crontabTask.tmp
     echo "00 4 */2 * * XrayR geo > /dev/null" >>/tmp/crontabTask.tmp
     crontab /tmp/crontabTask.tmp
     rm /tmp/crontabTask.tmp
-    LOGI "开启自动更新geo数据成功"
+    echo -e "开启自动更新geo数据成功"
 }
 
 disable_auto_update_geo() {
     crontab -l | grep -v "XrayR geo" | crontab -
     if [[ $? -ne 0 ]]; then
-        LOGI "取消XrayR 自动更新geo数据失败"
+        echo -e "取消XrayR 自动更新geo数据失败"
     else
-        LOGI "取消XrayR 自动更新geo数据成功"
+        echo -e "取消XrayR 自动更新geo数据成功"
     fi
 }
 
