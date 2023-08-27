@@ -7,6 +7,13 @@ plain='\033[0m'
 
 version="v1.0.0"
 
+
+# consts for geo update
+PATH_FOR_GEO_IP='/etc/XrayR/geoip.dat'
+PATH_FOR_GEO_SITE='/etc/XrayR/geosite.dat'
+URL_FOR_GEO_IP='https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat'
+URL_FOR_GEO_SITE='https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat'
+
 # check root
 [[ $EUID -ne 0 ]] && echo -e "${red}错误: ${plain} 必须使用root用户运行此脚本！\n" && exit 1
 
@@ -84,7 +91,7 @@ before_show_menu() {
 }
 
 install() {
-    bash <(curl -Ls https://raw.githubusercontent.com/XrayR-project/XrayR-release/master/install.sh)
+    bash <(curl -Ls https://raw.githubusercontent.com/Wulitou-wahaha/XrayR-release/master/install.sh)
     if [[ $? == 0 ]]; then
         if [[ $# == 0 ]]; then
             start
@@ -108,7 +115,7 @@ update() {
 #        fi
 #        return 0
 #    fi
-    bash <(curl -Ls https://raw.githubusercontent.com/XrayR-project/XrayR-release/master/install.sh) $version
+    bash <(curl -Ls https://raw.githubusercontent.com/wyx2685/XrayR/master/install.sh) $version
     if [[ $? == 0 ]]; then
         echo -e "${green}更新完成，已自动重启 XrayR，请使用 XrayR log 查看运行日志${plain}"
         exit
@@ -257,7 +264,7 @@ show_log() {
 }
 
 install_bbr() {
-    bash <(curl -L -s https://raw.githubusercontent.com/chiakge/Linux-NetSpeed/master/tcp.sh)
+    bash <(curl -L -s https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/raw/master/tcpx.sh)
     #if [[ $? == 0 ]]; then
     #    echo ""
     #    echo -e "${green}安装 bbr 成功，请重启服务器${plain}"
@@ -270,7 +277,7 @@ install_bbr() {
 }
 
 update_shell() {
-    wget -O /usr/bin/XrayR -N --no-check-certificate https://raw.githubusercontent.com/XrayR-project/XrayR-release/master/XrayR.sh
+    wget -O /usr/bin/XrayR -N --no-check-certificate https://raw.githubusercontent.com/Wulitou-wahaha/XrayR-release/master/XrayR.sh
     if [[ $? != 0 ]]; then
         echo ""
         echo -e "${red}下载脚本失败，请检查本机能否连接 Github${plain}"
@@ -365,6 +372,75 @@ show_XrayR_version() {
     fi
 }
 
+cron_jobs() {
+    clear
+    echo -e "
+  ${green}定时任务管理${plain}
+  ${green}0.${plain}  返回主菜单
+  ${green}1.${plain}  开启定时更新geo
+  ${green}2.${plain}  关闭定时更新geo
+  "
+    echo && read -p "请输入选择 [0-2]: " num
+    case "${num}" in
+    0)
+        show_menu
+        ;;
+    1)
+        enable_auto_update_geo
+        ;;
+    2)
+        disable_auto_update_geo
+        ;;
+    *)
+        LOGE "请输入正确的数字 [0-4]"
+        ;;
+    esac
+}
+
+#update geo data
+update_geo() {
+    #back up first
+    mv ${PATH_FOR_GEO_IP} ${PATH_FOR_GEO_IP}.bak
+    #update data
+    curl -s -L -o ${PATH_FOR_GEO_IP} ${URL_FOR_GEO_IP}
+    if [[ $? -ne 0 ]]; then
+        echo "update geoip.dat failed"
+        mv ${PATH_FOR_GEO_IP}.bak ${PATH_FOR_GEO_IP}
+    else
+        echo "update geoip.dat succeed"
+        rm -f ${PATH_FOR_GEO_IP}.bak
+    fi
+    mv ${PATH_FOR_GEO_SITE} ${PATH_FOR_GEO_SITE}.bak
+    curl -s -L -o ${PATH_FOR_GEO_SITE} ${URL_FOR_GEO_SITE}
+    if [[ $? -ne 0 ]]; then
+        echo "update geosite.dat failed"
+        mv ${PATH_FOR_GEO_SITE}.bak ${PATH_FOR_GEO_SITE}
+    else
+        echo "update geosite.dat succeed"
+        rm -f ${PATH_FOR_GEO_SITE}.bak
+    fi
+    #restart x-ui
+    systemctl restart XrayR
+}
+
+enable_auto_update_geo() {
+    LOGI "正在开启自动更新geo数据..."
+    crontab -l >/tmp/crontabTask.tmp
+    echo "00 4 */2 * * XrayR geo > /dev/null" >>/tmp/crontabTask.tmp
+    crontab /tmp/crontabTask.tmp
+    rm /tmp/crontabTask.tmp
+    LOGI "开启自动更新geo数据成功"
+}
+
+disable_auto_update_geo() {
+    crontab -l | grep -v "XrayR geo" | crontab -
+    if [[ $? -ne 0 ]]; then
+        LOGI "取消XrayR 自动更新geo数据失败"
+    else
+        LOGI "取消XrayR 自动更新geo数据成功"
+    fi
+}
+
 show_usage() {
     echo "XrayR 管理脚本使用方法: "
     echo "------------------------------------------"
@@ -381,6 +457,8 @@ show_usage() {
     echo "XrayR install      - 安装 XrayR"
     echo "XrayR uninstall    - 卸载 XrayR"
     echo "XrayR version      - 查看 XrayR 版本"
+    echo "XrayR geo          - 更新 XrayR geo 文件"
+    echo "XrayR cron         - 配置 XrayR 定时任务"
     echo "------------------------------------------"
 }
 
@@ -406,10 +484,11 @@ show_menu() {
  ${green}11.${plain} 一键安装 bbr (最新内核)
  ${green}12.${plain} 查看 XrayR 版本 
  ${green}13.${plain} 升级维护脚本
+ ${green}14.${plain} 配置定时任务
  "
  #后续更新可加入上方字符串中
     show_status
-    echo && read -p "请输入选择 [0-13]: " num
+    echo && read -p "请输入选择 [0-14]: " num
 
     case "${num}" in
         0) config
@@ -440,7 +519,9 @@ show_menu() {
         ;;
         13) update_shell
         ;;
-        *) echo -e "${red}请输入正确的数字 [0-12]${plain}"
+        14) check_install && cron_jobs
+        ;;
+        *) echo -e "${red}请输入正确的数字 [0-14]${plain}"
         ;;
     esac
 }
@@ -474,6 +555,10 @@ if [[ $# > 0 ]]; then
         ;;
         "update_shell") update_shell
         ;;
+        "geo") check_install 0 && update_geo
+        ;;
+        "cron") check_install && cron_jobs
+        ;;        
         *) show_usage
     esac
 else
