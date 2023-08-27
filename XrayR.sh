@@ -392,7 +392,7 @@ cron_jobs() {
         disable_auto_update_geo
         ;;
     *)
-        echo -e "请输入正确的数字 [0-4]"
+        echo && read -p "请输入正确的数字 [0-4]"
         ;;
     esac
 }
