@@ -115,7 +115,7 @@ update() {
 #        fi
 #        return 0
 #    fi
-    bash <(curl -Ls https://raw.githubusercontent.com/wyx2685/XrayR/master/install.sh) $version
+    bash <(curl -Ls https://raw.githubusercontent.com/Wulitou-wahaha/XrayR-release/master/install.sh) $version
     if [[ $? == 0 ]]; then
         echo -e "${green}更新完成，已自动重启 XrayR，请使用 XrayR log 查看运行日志${plain}"
         exit
