@@ -365,7 +365,7 @@ show_enable_status() {
 
 show_XrayR_version() {
     echo -n "XrayR 版本："
-    /usr/local/XrayR/XrayR -version
+    /usr/local/XrayR/XrayR version
     echo ""
     if [[ $# == 0 ]]; then
         before_show_menu
@@ -379,8 +379,9 @@ cron_jobs() {
   ${green}0.${plain}  返回主菜单
   ${green}1.${plain}  开启定时更新geo
   ${green}2.${plain}  关闭定时更新geo
+  ${green}3.${plain}  开启定时清理日志
   "
-    echo && read -p "请输入选择 [0-2]: " num
+    echo && read -p "请输入选择 [0-3]: " num
     case "${num}" in
     0)
         show_menu
@@ -391,8 +392,11 @@ cron_jobs() {
     2)
         disable_auto_update_geo
         ;;
+    3)
+        enable_auto_clean_log
+        ;;    
     *)
-        echo && read -p "请输入正确的数字 [0-4]"
+        echo && read -p "请输入正确的数字 [0-3]"
         ;;
     esac
 }
@@ -430,6 +434,10 @@ enable_auto_update_geo() {
     crontab /tmp/crontabTask.tmp
     rm /tmp/crontabTask.tmp
     echo -e "开启自动更新geo数据成功"
+    echo ""
+    if [[ $# == 0 ]]; then
+        before_show_menu
+    fi
 }
 
 disable_auto_update_geo() {
@@ -439,8 +447,25 @@ disable_auto_update_geo() {
     else
         echo -e "取消XrayR 自动更新geo数据成功"
     fi
+    echo ""
+    if [[ $# == 0 ]]; then
+        before_show_menu
+    fi
 }
 
+enable_auto_clean_log() {
+    echo -e "正在开启自动清理日志"
+    crontab -l >/tmp/crontabTask.tmp
+    echo "0 0 1 * * > /etc/XrayR/access.log" >>/tmp/crontabTask.tmp
+    echo "0 0 1 * * > /etc/XrayR/error.log" >>/tmp/crontabTask.tmp
+    crontab /tmp/crontabTask.tmp
+    rm /tmp/crontabTask.tmp
+    echo -e "启动成功"
+    echo ""
+    if [[ $# == 0 ]]; then
+        before_show_menu
+    fi
+}
 show_usage() {
     echo "XrayR 管理脚本使用方法: "
     echo "------------------------------------------"
@@ -555,9 +580,9 @@ if [[ $# > 0 ]]; then
         ;;
         "update_shell") update_shell
         ;;
-        "geo") check_install 0 && update_geo
+        "geo") check_install 0 && update_geo 0
         ;;
-        "cron") check_install && cron_jobs
+        "cron") check_install 0 && cron_jobs 0
         ;;        
         *) show_usage
     esac
