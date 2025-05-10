@@ -150,7 +150,8 @@ install_XrayR() {
     if [[ ! -f /etc/XrayR/geoip.dat || ! -f /etc/XrayR/geosite.dat ]]; then
         cp geoip.dat /etc/XrayR/
         cp geosite.dat /etc/XrayR/ 
-
+    fi
+    
     if [[ ! -f /etc/XrayR/config.yml ]]; then
         cp config.yml /etc/XrayR/
         echo -e ""
