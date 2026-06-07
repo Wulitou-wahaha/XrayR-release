@@ -11,8 +11,8 @@ version="v1.0.0"
 # consts for geo update
 PATH_FOR_GEO_IP='/etc/XrayR/geoip.dat'
 PATH_FOR_GEO_SITE='/etc/XrayR/geosite.dat'
-URL_FOR_GEO_IP='https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat'
-URL_FOR_GEO_SITE='https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat'
+URL_FOR_GEO_IP='https://github.com/Wulitou-wahaha/geoip/releases/latest/download/geoip.dat'
+URL_FOR_GEO_SITE='https://github.com/Wulitou-wahaha/domain-list-custom/releases/latest/download/geosite.dat'
 
 # check root
 [[ $EUID -ne 0 ]] && echo -e "${red}错误: ${plain} 必须使用root用户运行此脚本！\n" && exit 1
